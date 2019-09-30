@@ -8,6 +8,9 @@
     "azFunctionAppSku": {
       "value": "S1"
     },
+    "storageSku": {
+      "value": "Standard_LRS"
+    },
     "repoURL": {
       "value": "https://github.com/flecoqui/TestPythonAzFunc.git"
     },

@@ -32,6 +32,19 @@
         "description": "The SKU of the Azure Function you want to create."
       }
     },
+    "storageSku": {
+      "type": "string",
+      "defaultValue": "Standard_LRS",
+      "allowedValues": [
+        "Standard_LRS",
+        "Standard_GRS",
+        "Standard_RAGRS",
+        "Premium_LRS"
+      ],
+      "metadata": {
+        "description": "This is  Storage Account SKU associated with Azure Function"
+      }
+    },
     "repoURL": {
       "type": "string",
       "defaultValue": "https://github.com/flecoqui/TestPythonAzFunc.git",
@@ -50,16 +63,41 @@
       "type": "string",
       "defaultValue": "PythonFunction",
       "metadata": {
-        "description": "The path of the Azure Function code on github."
+        "description": "The path of the Python Azure Function code on github."
       }
     }
   },
   "variables": {
     "location": "[resourceGroup().location]",
     "azFunctionPlanName": "[concat(parameters('namePrefix'), 'functplan')]",
-    "azFunctionName": "[concat(parameters('namePrefix'), 'function')]"
+    "azFunctionName": "[concat(parameters('namePrefix'), 'function')]",
+    "storageName": "[concat(parameters('namePrefix'), 'storage')]"
   },
   "resources": [
+    {
+      "comments": "Storage used by Azure Function",
+      "type": "Microsoft.Storage/storageAccounts",
+      "sku": {
+        "name": "[parameters('storageSku')]"
+      },
+      "kind": "Storage",
+      "name": "[variables('storageName')]",
+      "apiVersion": "2016-01-01",
+      "location": "[resourceGroup().location]",
+      "tags": {},
+      "properties": {
+        "cors": {
+          "allowedHeaders": [ "*" ],
+          "allowedMethods": [ "get", "post", "put" ],
+          "allowedOrigins": [ "*" ],
+          "exposedHeaders": [ "*" ],
+          "maximumAge": 5
+        }
+
+      },
+      "resources": [],
+      "dependsOn": []
+    },
     {
       "type": "Microsoft.Web/serverfarms",
       "sku": {
@@ -106,14 +144,6 @@
         "siteConfig": {
           "alwaysOn": true,
           "appSettings": [
-            {
-              "name": "FUNCTIONS_EXTENSION_VERSION",
-              "value": "~2"
-            },
-            {
-              "name": "FUNCTIONS_EXTENSION_RUNTIME",
-              "value": "dotnet"
-            },
             {
               "name": "Project",
               "value": "[parameters('repoFunctionPath')]"
@@ -188,11 +218,7 @@
   "outputs": {
     "curlCmdAzFunction1": {
       "type": "string",
-      "value": "[concat('curl -d ''{\"name\":\"0123456789\"}'' -H \"Content-Type: application/json\"  -X POST   https://',variables('azFunctionName'),'.azurewebsites.net/api/values')]"
-    },
-    "curlCmdAzFunction2": {
-      "type": "string",
-      "value": "[concat('curl -H \"Content-Type: application/json\"  -X GET   https://',variables('azFunctionName'),'.azurewebsites.net/api/test')]"
+      "value": "[concat('curl -d ''{\"name\":\"0123456789\"}'' -H \"Content-Type: application/json\"  -X POST   https://',variables('azFunctionName'),'.azurewebsites.net/api/HttpTriggerPyFunc')]"
     }
   }
 }
