@@ -1,9 +1,9 @@
 # Deployment of a REST API  hosted on Azure Function
 
-<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fflecoqui%2FTestRESTAPIServices%2Fmaster%2FAzure%2F101-function%2Fazuredeploy.json" target="_blank">
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fflecoqui%2FTestPythonAzFunc%2Fmaster%2FAzure%2F101-function%2Fazuredeploy.json" target="_blank">
     <img src="http://azuredeploy.net/deploybutton.png"/>
 </a>
-<a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fflecoqui%2FTestRESTAPIServices%2Fmaster%2FAzure%2F101-function%2Fazuredeploy.json" target="_blank">
+<a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fflecoqui%2FTestPythonAzFunc%2Fmaster%2FAzure%2F101-function%2Fazuredeploy.json" target="_blank">
     <img src="http://armviz.io/visualizebutton.png"/>
 </a>
 
@@ -85,8 +85,8 @@ The services has been deployed with 2 command lines.
 Once the services are deployed, you can test the REST API using Curl. You can download curl from here https://curl.haxx.se/download.html 
 For instance :
 
-     curl -d "{\"param1\":\"0123456789\",\"param2\":\"abcdef\"}' -H "Content-Type: application/json"  -X POST   https://<namePrefix>function.azurewebsites.net/api/HttpTriggerPythonFunction
-     curl -H "Content-Type: application/json"  -X GET   https://<namePrefix>function.azurewebsites.net/api/HttpTriggerPythonFunction?param1=0123456789&param2=abcdef
+     curl -d "{\"param1\":\"0123456789\",\"param2\":\"abcdef\"}" -H "Content-Type: application/json"  -X POST   "https://<namePrefix>function.azurewebsites.net/api/HttpTriggerPythonFunction"
+     curl -H "Content-Type: application/json"  -X GET   "https://<namePrefix>function.azurewebsites.net/api/HttpTriggerPythonFunction?param1=0123456789&param2=abcdef"
 
 </p>
 
