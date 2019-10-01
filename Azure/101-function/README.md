@@ -7,20 +7,23 @@
     <img src="http://armviz.io/visualizebutton.png"/>
 </a>
 
-This template allows you to deploy from Github a REST API  hosted on Azure App Service, Azure Function, Azure Virtual Machine, Azure Container Instance and Azure Kubernetes Service. Moreover, the REST API service will be directly deployed from github towards Azure App Service, Azure Function, Azure Virtual Machine and Azure Container Registry.
+This template allows you to deploy from Github a Python REST API hosted on Azure Function. Moreover, the REST API service will be directly deployed from github towards Azure Function.
 
-The REST API (api/values) is actually an JSON echo service, if you send a Json string in the http content, you will receive the same Json string in the http response.
-Below a curl command line to send the request:
-
-
-          curl -d '{"name":"0123456789"}' -H "Content-Type: application/json"  -X POST   https://<hostname>/api/values
+The REST API (api/HttpTriggerPythonFunction) is actually an JSON echo service with two paramaters (param1, param2), if you send a Json string in the http content, you will receive the same Json string in the http response.
+Below a curl command line to send the request.
+POST Request:
 
 
-Moreover, you can get some information about the performances of this service using another REST API (api/test).
-Below a curl command line to retrieve the performance counters:
+          curl -d "{\"param1\":\"0123456789\",\"param2\":\"abcdef\"}' -H "Content-Type: application/json"  -X POST   https://<hostname>/api/HttpTriggerPythonFunction
 
 
-          curl  -H "Content-Type: application/json"  -X POST   https://<hostname>/api/test
+GET Request:
+
+
+          curl -H "Content-Type: application/json"  -X GET   https://<hostname>/api/HttpTriggerPythonFunction?param1=0123456789&param2=abcdef
+
+
+
 
 
 
@@ -44,9 +47,9 @@ First you need to create the resource group which will be associated with this d
 
 For instance:
 
-    azure group create TestRESTAPIServicesrg eastus2
+    azure group create testpythonazfuncrg eastus2
 
-    az group create -n TestRESTAPIServicesrg -l eastus2
+    az group create -n testpythonazfuncrg -l eastus2
 
 ## DEPLOY THE SERVICES:
 
@@ -59,14 +62,15 @@ You can deploy Azure Function, Azure App Service and Virtual Machine using ARM (
 
 For instance:
 
-    azure group deployment create TestRESTAPIServicesrg TestRESTAPIServicesdep -f azuredeploy.json -e azuredeploy.parameters.json -vv
+    azure group deployment create testpythonazfuncrg testpythonazfuncdep -f azuredeploy.json -e azuredeploy.parameters.json -vv
 
-    az group deployment create -g TestRESTAPIServicesrg -n TestRESTAPIServicesdep --template-file azuredeploy.json --parameter @azuredeploy.parameters.json --verbose -o json
+    az group deployment create -g testpythonazfuncrg -n testpythonazfuncdep --template-file azuredeploy.json --parameter @azuredeploy.parameters.json --verbose -o json
 
 
 When you deploy the service you can define the following parameters:</p>
 * **namePrefix:** The name prefix which will be used for all the services deployed with this ARM Template</p>
-* **azFunctionAppSku:** The Azure Function App Sku Capacity, by defualt F1</p>
+* **azFunctionAppSku:** The Azure Function App Sku Capacity, by defualt S1</p>
+* **storageSku:** The Azure Storage Sku Capacity, by default Standard_LRS</p>
 * **repoURL:** The github repository url</p>
 * **branch:** The branch name in the repository</p>
 * **repoFunctionPath:** The path to the Azure Function code, by default "TestFunctionApp"</p>
@@ -81,41 +85,10 @@ The services has been deployed with 2 command lines.
 Once the services are deployed, you can test the REST API using Curl. You can download curl from here https://curl.haxx.se/download.html 
 For instance :
 
-     curl -d '{"name":"0123456789"}' -H "Content-Type: application/json"  -X POST   https://<namePrefix>function.azurewebsites.net/api/values
-     curl -d '{"name":"0123456789"}' -H "Content-Type: application/json"  -X POST   https://<namePrefix>web.azurewebsites.net/api/values
-     curl -d '{"name":"0123456789"}' -H "Content-Type: application/json"  -X POST   https://<namePrefix>vm.<Region>.cloudapp.azure.com/api/values
-     curl -d '{"name":"0123456789"}' -H "Content-Type: application/json"  -X POST   https://<namePrefix>aci.<Region>.azurecontainer.io/api/values
-     curl -d '{"name":"0123456789"}' -H "Content-Type: application/json"  -X POST   https://<namePrefix>aks.<Region>.cloudapp.azure.com/api/values
+     curl -d "{\"param1\":\"0123456789\",\"param2\":\"abcdef\"}' -H "Content-Type: application/json"  -X POST   https://<namePrefix>function.azurewebsites.net/api/HttpTriggerPythonFunction
+     curl -H "Content-Type: application/json"  -X GET   https://<namePrefix>function.azurewebsites.net/api/HttpTriggerPythonFunction?param1=0123456789&param2=abcdef
 
 </p>
-
-## TEST THE SERVICES WITH VEGETA
-You can also test the scalability of the REST API using Vegeta. 
-You can deploy a Virtual Machine running Vageta using the ARM Template here: https://github.com/flecoqui/101-vm-simple-vegeta-universal 
-While deploying Vegeta, you can select the type of Virtual Machine: Windows, Debian, Ubuntu, RedHat, Centos.
-
-Vegeta will be pre-installed on those virtual machines.
-
-Once connected with the Vegate Virtual Machine, open the Command Shell and launch the following command for instance :</p>
-
-
-         vegeta attack -duration=10s -rate 1000 -targets=targets.txt | vegeta report 
-
-
-
-where the file targets.txt contains the following lines: </p>
-
-
-          POST http://testrestfunction.azurewebsites.net/api/values
-          Content-Type: application/json
-          @data.json
-
-
-
-where the file data.json contains the following lines: </p>
-
-
-         '{"name":"0123456789"}'
 
 
 # DELETE THE REST API SERVICES 
@@ -129,9 +102,9 @@ where the file data.json contains the following lines: </p>
 
 For instance:
 
-    azure group delete TestRESTAPIServicesrg eastus2
+    azure group delete testpythonazfuncrg eastus2
 
-    az group delete -n TestRESTAPIServicesrg 
+    az group delete -n testpythonazfuncrg 
 
 
 
@@ -139,4 +112,4 @@ For instance:
 
 # Next Steps
 
-1. Automate the Vegeta Tests  
+1. More advanced Python Azure Function using Azure Storage, Azure Data Lake  
