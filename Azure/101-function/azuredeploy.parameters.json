@@ -6,7 +6,7 @@
       "value": "testpysto"
     },
     "azFunctionAppSku": {
-      "value": "S1"
+      "value": "Y1"
     },
     "storageSku": {
       "value": "Standard_LRS"
