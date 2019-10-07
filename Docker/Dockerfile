@@ -1,6 +1,6 @@
 FROM python:3.6-alpine3.9
 WORKDIR /app
-COPY  PythonContainer/* .
+COPY  PythonContainer/* ./
 WORKDIR /app/PythonContainer
 RUN pip install -r requirements.txt
 # Standard set up Nginx finished
