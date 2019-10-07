@@ -3,14 +3,10 @@
 # Parameter 2 prefixName 
 # Parameter 3 cpuCores 
 # Parameter 4 memoryInGb
-# Parameter 5 aksVMSize
-# Parameter 6 aksNodeCount
 resourceGroupName=$1
 prefixName=$2 
 cpuCores=$3 
 memoryInGb=$4
-aksVMSize=$5
-aksNodeCount=$6
 
 
 #############################################################################
@@ -113,20 +109,12 @@ if [ -z "$memoryInGb" ]; then
    memoryInGb=0.3
    exit 1
 fi
-if [ -z "$aksVMSize" ]; then
-   aksVMSize='Standard_D2s_v3'
-   exit 1
-fi
-if [ -z "$aksNodeCount" ]; then
-   aksNodeCount=1
-   exit 1
-fi
 
 
 environ=`env`
 WriteLog "Environment before installation: $environ"
 
-WriteLog "Installation script is starting for resource group: $resourceGroupName with prefixName: $prefixName cpu: $cpuCores memory: $memoryInGb AKS VM Size: $aksVMSize and AKS node count: $aksNodeCount
+WriteLog "Installation script is starting for resource group: $resourceGroupName with prefixName: $prefixName cpu: $cpuCores memory: $memoryInGb 
 check_os
 if [ $iscentos -ne 0 ] && [ $isredhat -ne 0 ] && [ $isubuntu -ne 0 ] && [ $isdebian -ne 0 ];
 then
@@ -138,14 +126,11 @@ acrName=$prefixName'acr'
 acrDeploymentName=$prefixName'acrdep'
 acrSPName=$prefixName'acrsp'
 akvName=$prefixName'akv'
-aksName=$prefixName'aks'
-aksClusterName=$prefixName'akscluster'
 acrSPPassword=''
 acrSPAppId=''
 acrSPObjectId=''
 akvDeploymentName=$prefixName'akvdep'
 aciDeploymentName=$prefixName'acidep'
-aksDeploymentName=$prefixName'aksdep'
 imageName='testwebapp.linux'
 imageNameId=$imageName':{{.Run.ID}}'
 imageTag='latest'
@@ -221,58 +206,6 @@ WriteLog "Deploying a container on Azure Container Instance"
 az group deployment create -g $resourceGroupName -n $aciDeploymentName --template-file azuredeploy.aci.json --parameter namePrefix=$prefixName imageName=$latestImageName  appId=$acrSPAppId  password=$acrSPPassword cpuCores=$cpuCores memoryInGb=$memoryInGb --verbose -o json
 az group deployment show -g $resourceGroupName -n $aciDeploymentName --query properties.outputs
 
-
-WriteLog "Deploying a kubernetes cluster" 
-az aks create --resource-group $resourceGroupName --name $aksClusterName --dns-name-prefix $aksName --node-vm-size $aksVMSize   --node-count $aksNodeCount --service-principal $acrSPAppId   --client-secret $acrSPPassword --generate-ssh-keys
-
-az aks get-credentials --resource-group $resourceGroupName --name $aksClusterName --overwrite-existing 
-
-WriteLog "Deploying a container in the kubernetes cluster" 
-sed 's/<ACRName>/'$acrName'/g' ./Docker/testwebapp.linux.aks.yaml > local.yaml
-sed -i 's/<cpuCores>/'$cpuCores'/g' local.yaml
-sed -i 's/<memoryInGb>/'$memoryInGb'/g' local.yaml
-kubectl apply -f local.yaml
-WriteLog "Waiting for Public IP address during 10 minutes max" 
-count=0
-IP='<pending>'
-while [[ $IP = '<pending>' ]] || [[ $IP = '' ]] && [[ $count -lt 40 ]]
-do
-count=$((count+1))
-#WriteLog "count"$count
-WriteLog "Waiting for Public IP address"
-sleep 15
-kubectl get services > services.txt
-# Public IP address of your ingress controller
-IP=$(Get-PublicIP ./services.txt)
-#WriteLog "ip"$IP
-done
-
-
-if  [[ $IP = '<pending>' ]]  || [[ $IP = '' ]];  then
-	 WriteLog "Can't get the public IP address for container, stopping the installation"
-     exit 1
-fi
-WriteLog "Public IP address: "$IP
-
-# Name to associate with public IP address
-dnsName=$aksName
-
-# Get the resource-id of the public ip
-PublicIPId=$(az network public-ip list --query "[?ipAddress!=null]|[?contains(ipAddress, '$IP')].[id]" --output tsv)
-
-
-WriteLog "Public IP address ID: "$PublicIPId 
-
-# Update public ip address with DNS name
-az network public-ip update --ids $PublicIPId --dns-name $dnsName
-
-# get the full dns name
-PublicDNSName=$(az network public-ip list --query "[?ipAddress!=null]|[?contains(ipAddress, '$IP')].[dnsSettings.fqdn]" --output tsv)
-
-
-WriteLog "Public DNS Name: "$PublicDNSName 
-WriteLog "curl -d '{\""name\"":\""0123456789\""}' -H \""Content-Type: application/json\""  -X POST   http://"$PublicDNSName"/api/values"
-WriteLog "curl -H \""Content-Type: application/json\""  -X GET   http://"$PublicDNSName"/api/test"
 
 WriteLog "Installation completed !" 
 

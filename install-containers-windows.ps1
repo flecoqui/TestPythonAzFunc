@@ -6,9 +6,7 @@ param
       [string]$resourceGroupName = $null,
       [string]$prefixName = $null,
       [string]$cpuCores = $null,
-      [string]$memoryInGb = $null,
-      [string]$aksVMSize = $null,
-      [string]$aksNodeCount = $null
+      [string]$memoryInGb = $null
 )
 function WriteLog($msg)
 {
@@ -31,25 +29,16 @@ if($cpuCores -eq $null) {
 if($memoryInGb -eq $null) {
      $memoryInGb=0.3
 }
-if($aksVMSize -eq $null) {
-     $aksVMSize=Standard_D2s_v3
-}
-if($aksNodeCount -eq $null) {
-     $aksNodeCount=1
-}
 
 $acrName = $prefixName + 'acr'
 $acrDeploymentName = $prefixName + 'acrdep'
 $acrSPName = $prefixName + 'acrsp'
 $akvName = $prefixName + 'akv'
-$aksName = $prefixName + 'aks'
-$aksClusterName = $prefixName + 'akscluster'
 $acrSPPassword = ''
 $acrSPAppId = ''
 $acrSPObjectId = ''
 $akvDeploymentName = $prefixName + 'akvdep'
 $aciDeploymentName = $prefixName + 'acidep'
-$aksDeploymentName = $prefixName + 'aksdep'
 $imageName = 'testwebapp.linux'
 $imageNameId = $imageName + ':{{.Run.ID}}'
 $imageTag = 'latest'
@@ -160,54 +149,6 @@ WriteLog "Deploying a container on Azure Container Instance"
 
 az group deployment create -g $resourceGroupName -n $aciDeploymentName --template-file azuredeploy.aci.json --parameter namePrefix=$prefixName imageName=$latestImageName  appId=$acrSPAppId  password=$acrSPPassword cpuCores=$cpuCores memoryInGb=$memoryInGb --verbose -o json
 az group deployment show -g $resourceGroupName -n $aciDeploymentName --query properties.outputs
-
-
-WriteLog "Deploying a kubernetes cluster" 
-# az aks create --resource-group $resourceGroupName --name $aksClusterName --dns-name-prefix $aksName --node-vm-size $aksVMSize   --node-count $aksNodeCount --service-principal $acrSPAppId   --client-secret $acrSPPassword --generate-ssh-keys
-# az aks get-credentials --resource-group $resourceGroupName --name $aksClusterName --overwrite-existing 
-
-WriteLog "Deploying a container in the kubernetes cluster" 
-# get-content Docker\testwebapp.linux.aks.yaml | %{$_ -replace "<ACRName>",$acrName} | %{$_ -replace "<cpuCores>",$cpuCores}  | %{$_ -replace "<memoryInGb>",$memoryInGb} > local.yaml
-# kubectl apply -f local.yaml
-# WriteLog "Waiting for Public IP address during 10 minutes max" 
-# $count = 0
-# Do
-# {
-# $count = $count+1
-WriteLog "Waiting for Public IP address" 
-# Start-Sleep -s 15
-# kubectl get services > services.txt 
-# Public IP address of your ingress controller
-# $IP  = Get-PublicIP .\services.txt 
-# }While ((($IP -eq '<pending>') -or ($IP -eq $null)) -and ($count -lt 40))
-
-# if (($IP -eq '<pending>') -or ($IP -eq $null)){
-	 WriteLog "Can't get the public IP address for container, stopping the installation"
-#      throw "Can't get the public IP address for container, stopping the installation"
-# }
-WriteLog ("Public IP address: " + $IP) 
-
-# Name to associate with public IP address
-# $dnsName=$aksName
-
-# Get the resource-id of the public ip
-# $PublicIPId=$(az network public-ip list --query "[?ipAddress!=null]|[?contains(ipAddress, '$IP')].[id]" --output tsv)
-
-
-WriteLog ("Public IP address ID: " + $PublicIPId) 
-
-# Update public ip address with DNS name
-# az network public-ip update --ids $PublicIPId --dns-name $dnsName
-
-# get the full dns name
-# $PublicDNSName=$(az network public-ip list --query "[?ipAddress!=null]|[?contains(ipAddress, '$IP')].[dnsSettings.fqdn]" --output tsv)
-
-
-WriteLog ("Public DNS Name: " +$PublicDNSName) 
-
-writelog ("curl -d '{""name"":""0123456789""}' -H ""Content-Type: application/json""  -X POST   http://" + $PublicDNSName + "/api/values")
-
-writelog ("curl -H ""Content-Type: application/json""  -X GET   http://" + $PublicDNSName + "/api/test")
 
 WriteLog "Installation completed !" 
 
