@@ -65,6 +65,7 @@
                   "properties": {
                       "image": "[concat(variables('containerRegistryName'),'.azurecr.io/', parameters('imageName'))]",
                       "command": [
+                          "python",
                           "./app.py",
                           "80"
                       ],
