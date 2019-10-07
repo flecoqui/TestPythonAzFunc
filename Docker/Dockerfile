@@ -3,4 +3,4 @@ WORKDIR /app
 COPY  PythonContainer/* ./PythonContainer/
 WORKDIR /app/PythonContainer
 RUN pip install -r requirements.txt
-CMD ["python","app.py"]
+CMD ["app.py","80"]
