@@ -3,4 +3,6 @@ WORKDIR /app
 COPY  PythonContainer/* ./PythonContainer/
 WORKDIR /app/PythonContainer
 RUN pip install -r requirements.txt
-CMD ["app.py","80"]
+EXPOSE 80
+RUN chmod +x ./app.py
+ENTRYPOINT ["./app.py", "80"]
