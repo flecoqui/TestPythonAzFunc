@@ -135,4 +135,4 @@ if __name__ == '__main__':
     portServer = 5000
     if length >= 2:
         portServer = sys.argv[1]
-    APP.run(port=portServer)
+    APP.run(host='0.0.0.0', port=portServer)
