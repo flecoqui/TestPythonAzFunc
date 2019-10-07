@@ -7,7 +7,7 @@
 
 # pylint: disable=invalid-name;
 # In order to avoid false positives with Flask
-
+import sys
 from os import environ
 from datetime import datetime
 from flask import Flask, jsonify, make_response, url_for, request
@@ -80,31 +80,8 @@ def after_request(response):
 
 # -- This is where the API effectively starts. -------------------------------
 
-@APP.route('/', methods=['GET'])
-def index():
-    """
-    This is the API index endpoint with HATEOAS support
-    :param: none
-    :return: a JSON (application/json)
-    """
-
-    headers = {}
-
-    return make_response(
-        jsonify(
-            {
-                'msg': 'this is index endpoint',
-                'tstamp': datetime.utcnow().timestamp(),
-                'endpoints': {
-                    'url_echo': url_for('echo', _external=True)
-                }
-            }
-        ), 200, headers
-    )
-
-
-@APP.route('/api/HttpTriggerPythonFunction', methods=['POST'])
-@APP.route('/api/HttpTriggerPythonFunction/<string:item>', methods=['POST'])
+@APP.route('/api/HttpTriggerPythonFunction', methods=['POST','GET'])
+@APP.route('/api/HttpTriggerPythonFunction/<string:item2>', methods=['POST','GET'])
 def echo(**kwargs):
     """
     This is the ECHO endpoint with HATEOAS support
@@ -113,7 +90,7 @@ def echo(**kwargs):
     """
 
     if kwargs:
-        content = kwargs['item']
+        content = kwargs['item2']
     else:
         content = 'none'
 
@@ -144,11 +121,7 @@ def echo(**kwargs):
                 'namespace_params': {
                     'content_received': content,
                     'param1': param1,
-                    'param2': param2
-                    
-                },
-                'endpoints': {
-                    'url_index': url_for('index', _external=True)
+                    'param2': param2                   
                 }
             }
         ), 200, headers
@@ -158,4 +131,8 @@ def echo(**kwargs):
 # -- Finally, the application is run, more or less ;) ------------------------
 
 if __name__ == '__main__':
-    APP.run()
+    length = len(sys.argv)
+    portServer = 5000
+    if length >= 2:
+        portServer = sys.argv[1]
+    APP.run(port=portServer)
